@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cache_example/api_service.dart';
 import 'package:cache_example/city.dart';
@@ -27,9 +28,10 @@ class MyApp extends StatelessWidget {
 class CityList extends StatelessWidget {
 
   var apiService = ApiService();
+  var client = http.Client();
 
   // TODO cache using cached_network_image
-  Future<String> getPhotoRef(String pid){
+  Future<String> getPhotoRef(String pid) async{
     // build http request + query params
     var linkTemplate = "https://randomuser.me/api/";
           var response = await client.get(linkTemplate);
@@ -53,7 +55,7 @@ class CityList extends StatelessWidget {
           
           return ListTile(
             // TODO cached_network_image
-            leading: Image(image:NetworkImage(linkTemplate)),
+            leading: Image(image:NetworkImage(photoRef)),
             title: Text(city.cityName),
             subtitle: GestureDetector(
               child: Container(decoration: BoxDecoration(color: Colors.orangeAccent)),
