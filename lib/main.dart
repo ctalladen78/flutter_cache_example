@@ -31,6 +31,11 @@ class CityList extends StatelessWidget {
   // TODO cache using cached_network_image
   Future<String> getPhotoRef(String pid){
     // build http request + query params
+    var linkTemplate = "https://randomuser.me/api/";
+          var response = await client.get(linkTemplate);
+          Map<String, dynamic> parsed = jsonDecode(response.body);
+      var uri = parsed["results"][0]["picture"]["large"];
+    return uri;
   }
 
   // TODO add to city list
@@ -45,7 +50,7 @@ class CityList extends StatelessWidget {
       builder: (ctx, snap){
         if(snap.hasData && snap.connectionState == ConnectionState.done){
           var photoRef = snap.data;
-          var linkTemplate = "https://maps.googleapis.com/maps/api/place/photo?photoreference=${photoRef}&key=AIzaSyDjNvN68cj8HM3qRIbutijHNs1TzKOyG7E&maxwidth=1024";
+          
           return ListTile(
             // TODO cached_network_image
             leading: Image(image:NetworkImage(linkTemplate)),
