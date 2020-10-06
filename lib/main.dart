@@ -37,6 +37,7 @@ class CityList extends StatelessWidget {
           var response = await client.get(linkTemplate);
           Map<String, dynamic> parsed = jsonDecode(response.body);
       var uri = parsed["results"][0]["picture"]["large"];
+    // return "test";
     return uri;
   }
 
@@ -47,11 +48,15 @@ class CityList extends StatelessWidget {
   Widget _buildNewCityForm(){return Form(child: Container());}
 
   Widget _buildCityItem({City city}) {
+          print("SNAP 2 ${city.cityName}");
     return FutureBuilder<String>(
+      // initialData: "initial data",
       future: getPhotoRef(city.cityPlaceId),
       builder: (ctx, snap){
+          print("SNAP 2 ${snap.connectionState} HAS DATA ${snap.hasData}");
         if(snap.hasData && snap.connectionState == ConnectionState.done){
           var photoRef = snap.data;
+          print("SNAP 2 ${photoRef}");
           
           return ListTile(
             // TODO cached_network_image
@@ -73,19 +78,18 @@ class CityList extends StatelessWidget {
     return StreamBuilder<List<City>>(
       stream: apiService.getCityListStream(),
       builder: (ctx, snapshot){
-        print("STATUS ${snapshot.connectionState} SNAP ${snapshot.data}");
+        print("STATUS ${snapshot.connectionState} SNAP ${snapshot.hasData}");
         if(snapshot.hasData && snapshot.connectionState == ConnectionState.active){
           var snapList = snapshot.data;
-          print("SNAP  $snapList");
-          return SliverList(
-            delegate: SliverChildBuilderDelegate((context,index){
+          print("SNAPLIST  $snapList");
+          return ListView.builder(
+            itemCount: snapList.length,
+            itemBuilder: (ctx, index){
                   return _buildCityItem(city: snapList[index]);
-            }, childCount: snapList.length),
-          );
+            },
+          ); 
         }
-        return SliverFillRemaining(
-          child: Center(child: CircularProgressIndicator())
-        );
+        return Container();
       },
     );
   }
@@ -95,11 +99,7 @@ class CityList extends StatelessWidget {
     // init stream state
     apiService.populateCityList();
     return Scaffold(
-      body: CustomScrollView(
-        slivers:[
-         _buildCityList(),
-        ]
-      )
+      body: _buildCityList(),
     );
   }
 
