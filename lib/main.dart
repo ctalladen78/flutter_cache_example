@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:cache_example/api_service.dart';
 import 'package:cache_example/city.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cache_example/image_cache_manager.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,18 +30,8 @@ class MyApp extends StatelessWidget {
 class CityList extends StatelessWidget {
 
   var apiService = ApiService();
-  var client = http.Client();
+  var imgCacheManager = ImageCacheManager.getInstance();
 
-  // TODO cache using cached_network_image
-  Future<String> getPhotoRef(String pid) async{
-    // build http request + query params
-    var linkTemplate = "https://randomuser.me/api/";
-          var response = await client.get(linkTemplate);
-          Map<String, dynamic> parsed = jsonDecode(response.body);
-      var uri = parsed["results"][0]["picture"]["large"];
-    // return "test";
-    return uri;
-  }
 
   // TODO add to city list
   // ApiService().addToCityList(
@@ -47,20 +39,17 @@ class CityList extends StatelessWidget {
   // );
   Widget _buildNewCityForm(){return Form(child: Container());}
 
-  Widget _buildCityItem({City city}) {
-          print("SNAP 2 ${city.cityName}");
-    return FutureBuilder<String>(
-      // initialData: "initial data",
-      future: getPhotoRef(city.cityPlaceId),
-      builder: (ctx, snap){
-          print("SNAP 2 ${snap.connectionState} HAS DATA ${snap.hasData}");
-        if(snap.hasData && snap.connectionState == ConnectionState.done){
-          var photoRef = snap.data;
-          print("SNAP 2 ${photoRef}");
-          
+
+
+  Widget _buildCityItem(City city, int idx) {
+    return FutureBuilder(
+      future: apiService.getRandomUser(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if(snapshot.hasData && snapshot.connectionState == ConnectionState.done){
+          var photoRef = snapshot.data;
           return ListTile(
-            // TODO cached_network_image
-            leading: Image(image:NetworkImage(photoRef)),
+            // leading: Image(image:NetworkImage(photoRef)),
+            leading:CachedNetworkImage(imageUrl:photoRef, height: 100.0, width: 100, cacheManager: imgCacheManager),
             title: Text(city.cityName),
             subtitle: GestureDetector(
               child: Container(decoration: BoxDecoration(color: Colors.orangeAccent)),
@@ -85,7 +74,7 @@ class CityList extends StatelessWidget {
           return ListView.builder(
             itemCount: snapList.length,
             itemBuilder: (ctx, index){
-                  return _buildCityItem(city: snapList[index]);
+              return _buildCityItem(snapList[index], index);
             },
           ); 
         }
@@ -97,6 +86,7 @@ class CityList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // init stream state
+    apiService.getPhotoRef();
     apiService.populateCityList();
     return Scaffold(
       body: _buildCityList(),

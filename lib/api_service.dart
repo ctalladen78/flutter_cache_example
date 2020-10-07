@@ -1,33 +1,48 @@
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:rxdart/rxdart.dart';
+import 'package:http/http.dart' as http;
 import 'package:cache_example/city.dart';
 import 'package:cache_example/cache_manager.dart';
-// import 'package:cached_network_image/cached_network_image.dart';
 
 class ApiService {
   // StreamController, MultiStreamController
   var cityListCtrl = PublishSubject<List<City>>();
+  var randomUser;
+  var client = http.Client();
 
   Stream getCityListStream(){
     return cityListCtrl.stream;
   }
 
+  Future<String> getRandomUser() async {
+    return randomUser;
+  }
+
+  // randomuser returns a different json response per call
+  // ideally you want a deterministic response
+  void getPhotoRef() async{
+    var linkTemplate = "https://randomuser.me/api/";
+    var response = await CacheableApiProvider().getItem(linkTemplate);
+    print("RESULT ${response}");
+    var uri = response["results"][0]["picture"]["large"];
+    randomUser = uri;
+  }
+
   // get city list
   void populateCityList() async {
-    var result = await CacheableApiProvider(baseUrl: "http://localhost:5000/citylist").get(params: {"":""});
-    // parse json response
+    var result = await CacheableApiProvider().getList("http://localhost:5000/citylist");
     var cityList = List<City>();
     for(var result in result["data"]){
       // var c = City.fromJson(result);
-      var c = City(cityName: result["city_name"], country: result["country"]);
+      var c = City(cityName: result["city_name"], country: result["country"], imageLink: result["image_link"]);
       cityList.add(c);
       // print("CITY RESULT $cityList");
     }
     cityListCtrl.sink.add(cityList);
   }
 
-  // TODO
   // add city to state + remote (cache is updated next remote call)
   void addToCityList(City city) async {
     // cityListCtrl.sink.add(result)

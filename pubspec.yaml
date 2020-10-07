@@ -25,12 +25,8 @@ dependencies:
     sdk: flutter
   path_provider:
   http:
-  dio:
-  stacked:
-  stacked_services:
-  get_it:
-  injectable:
   flutter_cache_manager:
+  cached_network_image:
   
 
 
