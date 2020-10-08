@@ -40,16 +40,10 @@ class CityList extends StatelessWidget {
   Widget _buildNewCityForm(){return Form(child: Container());}
 
 
-
-  Widget _buildCityItem(City city, int idx) {
-    return FutureBuilder(
-      future: apiService.getRandomUser(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if(snapshot.hasData && snapshot.connectionState == ConnectionState.done){
-          var photoRef = snapshot.data;
+  Widget _buildCityItemLink(City city) {
           return ListTile(
             // leading: Image(image:NetworkImage(photoRef)),
-            leading:CachedNetworkImage(imageUrl:photoRef, height: 100.0, width: 100, cacheManager: imgCacheManager),
+            leading:CachedNetworkImage(imageUrl:city.imageLink, height: 100.0, width: 100, cacheManager: imgCacheManager),
             title: Text(city.cityName),
             subtitle: GestureDetector(
               child: Container(decoration: BoxDecoration(color: Colors.orangeAccent)),
@@ -57,11 +51,8 @@ class CityList extends StatelessWidget {
               },
             ),
           );
-        }
-        return Container();
-      },
-    );
   }
+
 
   Widget _buildCityList(){
     return StreamBuilder<List<City>>(
@@ -74,7 +65,7 @@ class CityList extends StatelessWidget {
           return ListView.builder(
             itemCount: snapList.length,
             itemBuilder: (ctx, index){
-              return _buildCityItem(snapList[index], index);
+              return _buildCityItemLink(snapList[index]);
             },
           ); 
         }
@@ -86,7 +77,6 @@ class CityList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // init stream state
-    apiService.getPhotoRef();
     apiService.populateCityList();
     return Scaffold(
       body: _buildCityList(),

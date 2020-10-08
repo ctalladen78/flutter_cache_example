@@ -16,20 +16,8 @@ class ApiService {
     return cityListCtrl.stream;
   }
 
-  Future<String> getRandomUser() async {
-    return randomUser;
-  }
-
   // randomuser returns a different json response per call
   // ideally you want a deterministic response
-  void getPhotoRef() async{
-    var linkTemplate = "https://randomuser.me/api/";
-    var response = await CacheableApiProvider().getItem(linkTemplate);
-    print("RESULT ${response}");
-    var uri = response["results"][0]["picture"]["large"];
-    randomUser = uri;
-  }
-
   // get city list
   void populateCityList() async {
     var result = await CacheableApiProvider().getList("http://localhost:5000/citylist");
