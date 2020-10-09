@@ -16,22 +16,127 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: "/",
-      // root screens
-      routes: {
+      home: Home(),
+    );
+  }
+}
+class Home extends StatefulWidget {
+  @override
+  _HomeState createState() => _HomeState();
+}
 
-        "/": (context) => CityList()
-        // "/city_detail": (context) => CityDetail()
-      },
+class _HomeState extends State<Home> {
+
+  int _selectedIndex = 0;
+  var pgCtrl = PageController();
+
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      // backgroundColor: Colors.white,
+      body: new PageView(
+        controller: pgCtrl,
+        onPageChanged: (index) => setState(() => _selectedIndex = index),
+        children: <Widget>[
+          CategoryList(),
+          CityList()
+        ]
+      ),
     );
   }
 }
 
-class CityList extends StatelessWidget {
+class CategoryList extends StatefulWidget {
+  @override
+  _CategoryListState createState() => _CategoryListState();
+}
+
+class _CategoryListState extends State<CategoryList> {
 
   var apiService = ApiService();
   var imgCacheManager = ImageCacheManager.getInstance();
+  BottomNavigationBar _buildFooter(){ 
+      return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      items: <BottomNavigationBarItem>[
+        new BottomNavigationBarItem(
+          icon: new IconButton(icon: Icon(Icons.map), onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CityList())
+            );
+          },),
+          title: new Text('Discover', style: TextStyle(color: Colors.white),),
+        ),
+        new BottomNavigationBarItem(
+          icon: new IconButton(icon: Icon(Icons.map), onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CategoryList())
+            );
+          },),
+          title: new Text('Discover', style: TextStyle(color: Colors.white),),
+        )
+      ]
+    );
+  }
+  Widget _buildCityItemLink(City city) {
+    print("CATEGORY LINK ${city.imageLink}");
+          return ListTile(
+            // leading: Image(image:NetworkImage(photoRef)),
+            leading:CachedNetworkImage(imageUrl:city.imageLink, height: 100.0, width: 100, cacheManager: imgCacheManager),
+            title: Text(city.cityName),
+            subtitle: GestureDetector(
+              child: Container(decoration: BoxDecoration(color: Colors.orangeAccent)),
+              onTap: (){
+              },
+            ),
+          );
+  }
 
+
+  Widget _buildCityList(){
+    return StreamBuilder<List<City>>(
+      stream: apiService.getUserListStream(),
+      builder: (ctx, snapshot){
+        print("STATUS ${snapshot.connectionState} SNAP ${snapshot.hasData}");
+        if(snapshot.hasData && snapshot.connectionState == ConnectionState.active){
+          var snapList = snapshot.data;
+          print("SNAPLIST  $snapList");
+          return ListView.builder(
+            itemCount: snapList.length,
+            itemBuilder: (ctx, index){
+              return _buildCityItemLink(snapList[index]);
+            },
+          ); 
+        }
+        return Container();
+      },
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    // init stream state
+    apiService.populateUserList();
+          return Scaffold(
+            body: _buildCityList(),
+            bottomNavigationBar: _buildFooter(),
+          );
+  }
+}
+
+class CityList extends StatefulWidget {
+  @override
+  _CityListState createState() => _CityListState();
+}
+
+class _CityListState extends State<CityList> {
+
+  var apiService = ApiService();
+  var imgCacheManager = ImageCacheManager.getInstance();
 
   // TODO add to city list
   // ApiService().addToCityList(
@@ -53,7 +158,31 @@ class CityList extends StatelessWidget {
           );
   }
 
-
+  BottomNavigationBar _buildFooter(){ 
+      return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      items: <BottomNavigationBarItem>[
+        new BottomNavigationBarItem(
+          icon: new IconButton(icon: Icon(Icons.map), onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CityList())
+            );
+          },),
+          title: new Text('Discover', style: TextStyle(color: Colors.white),),
+        ),
+        new BottomNavigationBarItem(
+          icon: new IconButton(icon: Icon(Icons.map), onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CategoryList())
+            );
+          },),
+          title: new Text('Discover', style: TextStyle(color: Colors.white),),
+        )
+      ]
+    );
+  }
   Widget _buildCityList(){
     return StreamBuilder<List<City>>(
       stream: apiService.getCityListStream(),
@@ -74,12 +203,14 @@ class CityList extends StatelessWidget {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     // init stream state
     apiService.populateCityList();
     return Scaffold(
       body: _buildCityList(),
+      bottomNavigationBar: _buildFooter(),
     );
   }
 
